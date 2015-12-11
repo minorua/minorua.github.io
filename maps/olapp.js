@@ -114,7 +114,7 @@ var olapp = {
   };
 
   // Load a script if not loaded yet
-  core.loadScript = function (url) {
+  core.loadScript = function (url) {    // TODO: statusMessage
     var d = $.Deferred();
     var sel = $('script[src="' + url + '"]');
     if (sel.length) {
@@ -158,11 +158,15 @@ var olapp = {
   };
 
   core.loadLayerFromFile = function (file) {
-    if (!olapp.project) alert('No project');   // TODO: assert
+    if (!olapp.project) {
+      console.log('No project');
+      return;
+    }
+    gui.status.showMessage('Loading ' + file.name + '...');
 
     var reader = new FileReader();
     reader.onload = function (event) {
-      var layer = core.createLayerFromTextSource(reader.result, file.name);
+      var layer = core.createLayer(reader.result, file.name);
       if (layer) {
         layer.set('title', file.name);
         core.project.addLayer(layer);
@@ -171,31 +175,36 @@ var olapp = {
       else {
         alert('Unknown format file: ' + file.name);
       }
+      gui.status.clear();
     }
     reader.readAsText(file, 'UTF-8');
   };
 
-  core.createLayerFromTextSource = function (text, filename, style, format) {    // TODO: layerOptions
-    if (format === undefined) format = filename.split('#')[0].split('.').pop();
+  core.createLayer = function (source, filename, style, format) {    // TODO: layerOptions
+    var ext = filename.split('#')[0].split('.').pop().toLowerCase();
+    if (format === undefined) format = ext;
 
-    var source = core.loadText(text, format);
+    var src = core.loadSource(source, format);
     var id = filename || '';
     if (id.indexOf('#') === -1) id += '#' + parseInt($.now() / 1000).toString(16);
 
+    if (style === undefined) style = {color: tinycolor.random().toRgbString()};
+
+    var styleFunc = core.createStyleFunction(style.color, style.width, style.fillColor);
     var layer = new ol.layer.Vector({
-      source: source,
-      style: core.createStyleFunction(),
+      source: src,
+      style: styleFunc,
       olapp: {
-        source: 'Text',
+        source: (ext.indexOf('json') !== -1) ? 'JSON' : 'Text',
         layer: id,
-        text: text
+        data: source,
+        style: style
       }
     });
 
-    if (style !== undefined) {
+    if (style.override) {
       // Set style to features
-      var styleFunc = core.createStyleFunction(style.color, style.width, style.fillColor);
-      var features = source.getFeatures();
+      var features = src.getFeatures();
       for (var i = 0, l = features.length; i < l; i++) {
         features[i].setStyle(styleFunc(features[i]));
       }
@@ -203,7 +212,7 @@ var olapp = {
     return layer;
   };
 
-  core.loadText = function (text, format) {
+  core.loadSource = function (source, format) {
     var format2formatConstructors = {
       'geojson': [ol.format.GeoJSON],
       'gpx': [ol.format.GPX],
@@ -222,17 +231,17 @@ var olapp = {
         ol.format.TopoJSON
       ];
     }
-    return core._loadText(text, formatConstructors);
+    return core._loadSource(source, formatConstructors);
   };
 
-  core._loadText = function (text, formatConstructors) {
+  core._loadSource = function (source, formatConstructors) {
     var transform = core.transformFromWgs84;
 
     for (var i = 0; i < formatConstructors.length; i++) {
       var format = new formatConstructors[i]();
       var features = [];
       try {
-        features = format.readFeatures(text);
+        features = format.readFeatures(source);
       } catch (e) {
         continue;
       }
@@ -392,8 +401,9 @@ var olapp = {
           }, 0);
         }
         else {
-          // TODO: status message
+          gui.status.showMessage('Loading EPSG code list...');
           core.loadScript('js/epsg.js').then(function () {
+            gui.status.clear();
             var code = parseInt(name.substr(5));
             for (var i = 0, l = olapp.epsgList.length; i < l; i++) {
               if (olapp.epsgList[i].code == code) {
@@ -460,6 +470,7 @@ var olapp = {
     //   prj: olapp.Project object, string (URL), File or Object (JSON).
     // Returns a deferred object which is resolved when the project has been loaded to application.
     load: function (prj) {
+      gui.status.showMessage('Loading Project...');
       var d, p;
       if (prj instanceof olapp.Project) {
         d = core.project._loadDeferred || $.Deferred();
@@ -499,7 +510,6 @@ var olapp = {
           var reader = new FileReader();
           reader.onload = function (event) {
             eval(reader.result);
-            // TODO: status message
           }
           reader.readAsText(prj, 'UTF-8');
         }
@@ -541,8 +551,8 @@ var olapp = {
           if (lyr.source == 'Custom') {
             layer = project.customLayers[lyr.layer](project, layerOptions);
           }
-          else if(lyr.source == 'Text') {
-            layer = core.createLayerFromTextSource(project.textSources[lyr.layer], lyr.layer, lyr.style);
+          else if(lyr.source == 'JSON' || lyr.source == 'Text') {
+            layer = core.createLayer(project.sources[lyr.layer].data, lyr.layer, lyr.style);
             for (var k in lyr.options) {
               layer.set(k, lyr.options[k]);
             }
@@ -577,6 +587,8 @@ var olapp = {
         map.addLayer(layer);
         gui.addLayer(layer);
       });
+
+      gui.status.clear();
     },
 
     loadLayerSource: function (layer, url) {
@@ -1017,8 +1029,9 @@ var olapp = {
       body.find('textarea[name=desc]').val(project.description);
       body.find('input[name=crs]').val(project.view.getProjection().getCode());
       body.find('button').click(function () {
-        // TODO: status message
+        gui.status.showMessage('Loading EPSG code list...');
         core.loadScript('js/epsg.js').then(function () {
+          gui.status.clear();
           var container = $('<div />');
           var filterBox = $('<input type="text" style="width: 100%;">').on('change keyup', function () {
             var filter = $(this).val().toLowerCase();
@@ -1160,8 +1173,11 @@ var olapp = {
           }
         };
         var layer = source.get(src).createLayer(id, layerOptions);
-        if (layer) core.project.addLayer(layer);
-        // TODO: status message
+        if (layer) {
+          core.project.addLayer(layer);
+          gui.status.showMessage('Layer "' + layer.title + '" has been added to the map.', 3000);
+        }
+        else gui.status.showMessage('Failed to create layer.', 3000);
       };
 
       var appendItem = function (sourceName, item) {
@@ -1219,6 +1235,7 @@ var olapp = {
             obj.style.color = color;
             obj.style.width = width;
             obj.style.fillColor = fillColor;
+            obj.style.override = true;
 
             // Set style to features
             var styleFunc = core.createStyleFunction(color, width, fillColor);
@@ -1387,6 +1404,25 @@ var olapp = {
   };
 
 
+  // olapp.gui.status
+  gui.status = {
+
+    clear: function () {    // TODO: optional message id
+      $('#status').fadeOut();
+    },
+
+    showMessage: function (html, millisec) {    // TODO: multiple message. Should return message id.
+      $('#status').stop(true, true).html(html).show();
+      if (millisec) {
+        window.setTimeout(function () {
+          $('#status').fadeOut();
+        }, millisec);
+      }
+    }
+
+  };
+
+
   // olapp.source
   var sources = {};
   var sourceGroups = {};
@@ -1511,7 +1547,7 @@ olapp.Project = function (options) {
   this.init = options.init;
   this.layers = options.layers || [];
   this.customLayers = options.customLayers || {};
-  this.textSources = options.textSources || {};
+  this.sources = options.sources || {};
 
   this._lastLayerId = this.layers.length - 1;
   this.mapLayers = [];
@@ -1525,13 +1561,15 @@ olapp.Project.prototype = {
     if (layer.get('title') === undefined) layer.set('title', 'no title');
     if (layer.get('blendMode') === undefined) layer.set('blendMode', 'source-over');
 
-    layer.on('precompose', function (evt) {
-      evt.context.globalCompositeOperation = this.get('blendMode');
+    var layers = (layer instanceof ol.layer.Group) ? layer.getLayers() : [layer];
+    layers.forEach(function (lyr) {
+      lyr.on('precompose', function (evt) {
+        evt.context.globalCompositeOperation = layer.get('blendMode');
+      });
+      lyr.on('postcompose', function (evt) {
+        evt.context.globalCompositeOperation = 'source-over';
+      });
     });
-    layer.on('postcompose', function (evt) {
-      evt.context.globalCompositeOperation = 'source-over';
-    });
-
     layer.set('id', this.getNextLayerId());
     this.mapLayers.push(layer);
   },
@@ -1571,17 +1609,20 @@ olapp.Project.prototype = {
   },
 
   toString: function () {
-    function quote_escape(text) {
-      return '"' + text.split('"').join('\\"') + '"';
+    function quote_escape(text, singleQuote) {
+      text = text.replace(/\n/g, '\\n');
+      if (singleQuote) return "'" + text.replace(/\'/g, "\\'") + "'";
+      return '"' + text.replace(/\"/g, '\\"') + '"';
     }
 
     var projection = this.view.getProjection().getCode();
     var center = this.view.getCenter() || [0, 0];
     var maxZoom = parseInt(olapp.tools.projection.zoomLevelFromResolution(this.view.minResolution_));
     var zoom = this.view.getZoom();
+    var enableRotation = !(this.view.constraints_.rotation === ol.RotationConstraint.disable);
     var initFuncStr = (this.init) ? this.init.toString() : 'undefined';
 
-    var layers = [], textSources = {};
+    var layers = [], sources = [];
     this.mapLayers.forEach(function (layer) {
       var properties = {
         options: {
@@ -1591,13 +1632,24 @@ olapp.Project.prototype = {
           title: layer.get('title')
         }
       };
-      $.extend(properties, layer.get('olapp'));
-      delete properties.text;
-      layers.push(properties);
+      var olappObj = layer.get('olapp');
+      $.extend(properties, olappObj);
+      delete properties.data;
+      layers.push('\n    ' + JSON.stringify(properties));
 
-      if (layer instanceof ol.layer.Vector) {
-        var text = layer.get('olapp').text;
-        if (text !== undefined) textSources[properties.layer] = text;
+      // source data
+      var data = olappObj.data;
+      if (layer instanceof ol.layer.Vector && data !== undefined) {
+        var ext = olappObj.layer.split('#')[0].split('.').pop().toLowerCase();
+        if (olappObj.source == 'JSON') {
+          if (typeof data == 'string') data = JSON.parse(data);
+          data = JSON.stringify(data);
+        }
+        else {
+          data = quote_escape(data, true);    // enclose text in single quotes
+        }
+        data = '{format:' + quote_escape(ext) + ',data:' + data + '}';
+        sources.push('\n    ' + quote_escape(properties.layer) + ':' + data);
       }
     });
 
@@ -1614,13 +1666,17 @@ olapp.Project.prototype = {
 '    projection: ' + quote_escape(projection) + ',',
 '    center: ' + JSON.stringify(center) + ',',
 '    maxZoom: ' + maxZoom + ',',
-'    zoom: ' + zoom,
+'    zoom: ' + zoom + ',',
+'    enableRotation: ' + enableRotation,
 '  }),',
 '  plugins: ' + JSON.stringify(this.plugins) + ',',
 '  init: ' + initFuncStr + ',',
-'  layers: ' + JSON.stringify(layers) + ',',
-'  textSources: ' + JSON.stringify(textSources) + ',',
-'  customLayers: {' + customLayers.join(',') + '}',
+'  layers: [' + layers.join(','),
+'  ],',
+'  sources: {' + sources.join(','),
+'  },',
+'  customLayers: {' + customLayers.join(','),
+'  }',
 '}));',
 ''];
 

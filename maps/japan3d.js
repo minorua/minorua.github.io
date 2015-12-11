@@ -5,11 +5,18 @@ olapp.loadProject(new olapp.Project({
     projection: "EPSG:3857",
     center: [15440013.373027043,4218373.287173401],
     maxZoom: 18,
-    zoom: 5
+    zoom: 5,
+    enableRotation: false
   }),
   plugins: ["source/gsitiles.js"],
   init: undefined,
-  layers: [{"options":{"visible":true,"opacity":1,"blendMode":"source-over","title":"標準地図"},"source":"GSITiles","layer":"std"},{"options":{"visible":false,"opacity":1,"blendMode":"source-over","title":"色別標高図"},"source":"GSITiles","layer":"relief"},{"options":{"visible":false,"opacity":1,"blendMode":"source-over","title":"写真"},"source":"GSITiles","layer":"ort"}],
-  textSources: {},
-  customLayers: {}
+  layers: [
+    {"options":{"visible":true,"opacity":1,"blendMode":"source-over","title":"標準地図"},"source":"GSITiles","layer":"std"},
+    {"options":{"visible":false,"opacity":1,"blendMode":"multiply","title":"色別標高図"},"source":"GSITiles","layer":"relief"},
+    {"options":{"visible":false,"opacity":1,"blendMode":"multiply","title":"写真"},"source":"GSITiles","layer":"ort"}
+  ],
+  sources: {
+  },
+  customLayers: {
+  }
 }));
