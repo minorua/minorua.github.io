@@ -36,13 +36,13 @@ olapp.database.open = function () {
   olapp.database.open();
 
   var storeName = 'tilecache';
-  var getTileCache = function (key) {
+  var getTileCache = function (url) {
     var d = $.Deferred();
     var db = olapp.database._db;
     if (db) {
       var tx = db.transaction([storeName]);
       var store = tx.objectStore(storeName);
-      var request = store.get(key);
+      var request = store.get(url);
       request.onsuccess = function (e) {
         if (request.result) d.resolve(request.result.data);
         else d.reject();
@@ -50,14 +50,12 @@ olapp.database.open = function () {
       request.onerror = function (e) {
         d.reject();
       };
+      return d.promise();
     }
     else {
       console.log('DB is not ready');
-      window.setTimeout(function () {
-        d.reject();
-      }, 0);
+      return d.reject().promise();
     }
-    return d.promise();
   };
 
   var putTileCache = function (url, data) {

@@ -119,10 +119,7 @@ var olapp = {
     var sel = $('script[src="' + url + '"]');
     if (sel.length) {
       console.log('Already loaded:', url);
-      window.setTimeout(function () {
-        d.resolve(sel.get(0));
-      }, 0);
-      return d.promise();
+      return d.resolve(sel.get(0)).promise();
     }
 
     var s = document.createElement('script');
@@ -162,7 +159,7 @@ var olapp = {
       console.log('No project');
       return;
     }
-    gui.status.showMessage('Loading ' + file.name + '...');
+    var msg = gui.status.showMessage('Loading ' + file.name + '...');
 
     var reader = new FileReader();
     reader.onload = function (event) {
@@ -175,7 +172,7 @@ var olapp = {
       else {
         alert('Unknown format file: ' + file.name);
       }
-      gui.status.clear();
+      msg.remove();
     }
     reader.readAsText(file, 'UTF-8');
   };
@@ -387,24 +384,24 @@ var olapp = {
       core.crs.definedCRSs[name] = proj4Str;
     },
 
+    isDefined: function (name) {
+      return (name in core.crs.definedCRSs || name == 'EPSG:3857' || name == 'EPSG:4326');
+    },
+
     getDefinition: function (name) {
       var d = $.Deferred();
-      if (name.indexOf('EPSG:') === 0) {
-        if (name == 'EPSG:3857') {
-          setTimeout(function () {
-            d.resolve();
-          }, 0);
-        }
-        else if (name in core.crs.definedCRSs) {
-          setTimeout(function () {
-            d.resolve(core.crs.definedCRSs[name]);
-          }, 0);
-        }
+      if (name in core.crs.definedCRSs) {
+        var obj = {
+          proj: core.crs.definedCRSs[name]
+        };
+        return d.resolve(obj).promise();
+      }
+      else if (name.indexOf('EPSG:') === 0) {
+        var code = parseInt(name.substr(5));
+        if (code == 3857 || code == 4326) return d.resolve(null).promise();  // TODO:
         else {
-          gui.status.showMessage('Loading EPSG code list...');
-          core.loadScript('js/epsg.js').then(function () {
-            gui.status.clear();
-            var code = parseInt(name.substr(5));
+          var msg = gui.status.showMessage('Loading EPSG code list...');
+          core.loadScript('js/epsg.js').always(msg.remove).then(function () {
             for (var i = 0, l = olapp.epsgList.length; i < l; i++) {
               if (olapp.epsgList[i].code == code) {
                 d.resolve(olapp.epsgList[i]);
@@ -413,14 +410,10 @@ var olapp = {
             }
             d.reject();
           });
+          return d.promise();
         }
       }
-      else {
-        setTimeout(function () {
-          d.reject();
-        }, 0);
-      }
-      return d.promise();
+      return d.reject().promise();
     }
 
   };
@@ -458,7 +451,6 @@ var olapp = {
     },
 
     _loadDeferred: null,
-    _loadPromise: null,
 
     _loadingLayers: {},
 
@@ -470,26 +462,24 @@ var olapp = {
     //   prj: olapp.Project object, string (URL), File or Object (JSON).
     // Returns a deferred object which is resolved when the project has been loaded to application.
     load: function (prj) {
-      gui.status.showMessage('Loading Project...');
-      var d, p;
+      var d = core.project._loadDeferred;
       if (prj instanceof olapp.Project) {
-        d = core.project._loadDeferred || $.Deferred();
-        p = core.project._loadPromise || d.promise();
-
-        var setProject = function () {
-          core.project.set(prj);
-          core.project._loadDeferred = core.project._loadPromise = null;
-          d.resolve();
-        };
+        var msg = gui.status.showMessage('Loading Project...');
 
         // Load and initialize plugins, and then set the project.
-        if (prj.plugins.length > 0) plugin.load(prj.plugins).then(setProject);
-        else window.setTimeout(setProject, 0);
+        if (!d) d = $.Deferred();
+        plugin.load(prj.plugins).then(function () {
+          core.project.set(prj);
+          core.project._loadDeferred = null;
 
-        return p;
+          msg.remove();
+          gui.status.showMessage('Project has been loaded.', 1);
+
+          d.resolve();
+        });
+        return d.promise();
       }
       else {
-        d = core.project._loadDeferred;
         if (d) {
           console.log('Another project starts to load before previous one finishes loading.');
           d.reject();
@@ -502,11 +492,15 @@ var olapp = {
 
         if (typeof prj == 'string') {
           // Load a project script
-          core.loadScript(prj).then(function (elem) {
+          var msg = gui.status.showMessage('Fetching Project...');
+          core.loadScript(prj).always(msg.remove).then(function (elem) {
             core.project._scriptElement = elem;
           });
         }
         else if (prj instanceof File) {
+          // Remove hash to respect view position/zoom in the project to load
+          window.location.replace('#');
+
           var reader = new FileReader();
           reader.onload = function (event) {
             eval(reader.result);
@@ -515,8 +509,7 @@ var olapp = {
         }
 
         d = core.project._loadDeferred = $.Deferred();
-        p = core.project._loadPromise = d.promise();
-        return p;
+        return d.promise();
       }
     },
 
@@ -587,8 +580,6 @@ var olapp = {
         map.addLayer(layer);
         gui.addLayer(layer);
       });
-
-      gui.status.clear();
     },
 
     loadLayerSource: function (layer, url) {
@@ -641,17 +632,16 @@ var olapp = {
     saveToStorage: function () {
     },
 
-    setCRS: function (crs) {
-      core.crs.getDefinition(crs).then(function (obj) {
-        if (obj && obj.proj) olapp.defineProjection(crs, obj.proj);
+    setCRS: function (crsName) {
 
+      function updateProject() {
         // transform center coordinates
         var view = olapp.project.view;
         var currentCRS = view.getProjection().getCode();
 
         olapp.project.view = new ol.View({
-          projection: crs,
-          center: ol.proj.transform(view.getCenter(), currentCRS, crs),
+          projection: crsName,
+          center: ol.proj.transform(view.getCenter(), currentCRS, crsName),
           zoom: view.getZoom(),
           maxZoom: parseInt(tools.projection.zoomLevelFromResolution(view.minResolution_))
         });
@@ -660,7 +650,16 @@ var olapp = {
         console.log('CRS has been changed.', projectStr);
         eval(projectStr);
         // TODO: remove project parameter from URL
-      }, function () {});
+      }
+
+      if (core.crs.isDefined(crsName)) updateProject();
+      else {
+        core.crs.getDefinition(crsName).then(function (obj) {
+          if (obj && obj.proj) olapp.defineProjection(crsName, obj.proj);
+          else console.log('Cannot get projection definition.');
+          updateProject();
+        }, function () {});
+      }
     }
 
   };
@@ -785,7 +784,10 @@ var olapp = {
       }
       else {
         for (var i = 0; i < files.length; i++) {
-          core.loadLayerFromFile(files[i]);
+          var ext = files[i].name.split('.').pop().toLowerCase();
+          if (ext != 'jpeg' && ext != 'jpg') {    // TODO: olapp: file drop event listeners
+            core.loadLayerFromFile(files[i]);
+          }
         }
       }
     });
@@ -988,102 +990,125 @@ var olapp = {
       project.title = body.find('input[name=title]').val();
       project.description = body.find('textarea[name=desc]').val();
 
-      var crs = body.find('input[name=crs]').val();
-      if (crs != project.view.getProjection().getCode()) {
-        core.crs.getDefinition(crs).then(function (obj) {
-          bootbox.confirm('Are you sure you want to change the CRS to "' + obj.title + '" (' + crs + ') ?', function(result) {
-            if (result) {
-              core.project.setCRS(crs);
-              $('#dlg_project').modal('hide');
-            }
+      if (body.find('input[name=crs][value=epsg]').prop('checked')) {
+        var code = 'EPSG:' + body.find('input[name=epsg]').val();
+        if (code != project.view.getProjection().getCode()) {
+          core.crs.getDefinition(code).then(function (obj) {
+            bootbox.confirm('Are you sure you want to change the CRS to "' + obj.title + '" (' + code + ') ?', function(result) {
+              if (result) {
+                core.project.setCRS(code);
+                $('#dlg_project').modal('hide');
+              }
+            });
+          }, function () {
+            bootbox.alert('Invalid CRS "' + code + '". Cannot apply it to the project.');
           });
-        }, function () {
-          bootbox.alert('Invalid CRS "' + crs + '". Cannot apply it to the project.');
-        });
+          return;
+        }
       }
       else {
-        $('#dlg_project').modal('hide');
+        var prj = body.find('input[name=proj4]').val();
+        if (prj) {
+          if (project.view.getProjection().getCode() !== 'custom' || prj !== core.crs.definedCRSs['custom']) {
+            core.crs.define('custom', prj);
+            core.project.setCRS('custom');
+          }
+        }
+        else {
+          bootbox.alert('Empty Proj4 string.');
+          return;
+        }
       }
+      $('#dlg_project').modal('hide');
     },
 
     show: function () {
+      var project = olapp.project;
+      var dlg = $('#dlg_project');
+      var body = dlg.find('.modal-body');
+
       if (!this._initialized) {
         $('#dlg_project').find('.modal-footer .btn-primary').click(function () {
+          gui.dialog.project.ok();
+        });
+
+        body.find('button').click(function () {
+          var msg = gui.status.showMessage('Loading EPSG code list...');
+          core.loadScript('js/epsg.js').always(msg.remove).then(function () {
+            var container = $('<div />');
+            var html =
+'<div class="input-group">' +
+'  <span class="input-group-addon glyphicon glyphicon-search"></span>' +
+'  <input type="text" class="form-control">' +
+'</div>';
+            var filterBox = $(html).appendTo(container);
+
+            var list = $('<ul class="list-group epsg-list" />').css({
+              'overflow-y': 'scroll',
+              'height': '200px'
+            }).appendTo(container);
+            olapp.epsgList.forEach(function (crs) {
+              list.append('<li class="list-group-item">[EPSG:' + crs.code + '] ' + crs.title + '</li>')
+            });
+            list.children().click(function () {
+              list.find('.active').removeClass('active');
+              $(this).addClass('active');
+            });
+
+            filterBox.find('input').on('change keyup', function () {
+              var filter = $(this).val().toLowerCase();
+              list.children().each(function (index) {
+                if ($(this).html().toLowerCase().indexOf(filter) !== -1) $(this).show();
+                else $(this).hide();
+              });
+            });
+
+            bootbox.dialog({
+              title: 'EPSG Code List',
+              message: container,
+              buttons: {
+                ok: {
+                  label: 'OK',
+                  className: "btn-primary",
+                  callback: function (e) {
+                    var item = list.children('.active');
+                    if (item.length == 0) {
+                      bootbox.alert('Select an EPSG code.');
+                      e.preventDefault();
+                    }
+                    else {
+                      body.find('input[name=epsg]').val(item.html().substr(1).split(']')[0].split(':')[1]);
+                    }
+                  }
+                },
+                cancel: {
+                  label: 'Cancel',
+                  className: "btn-default",
+                  callback: function () {}
+                }
+              }
+            });
+          });
+        });
+        body.children('form').submit(function (e) {
+          e.preventDefault();
           gui.dialog.project.ok();
         });
         this._initialized = true;
       }
 
-      var project = olapp.project;
-      var html =
-'<form><table>' +
-'<tr><td>Title</td><td><input type="text" name="title"></td></tr>' +
-'<tr><td>Description</td><td><textarea name="desc" rows="4"></textarea></td></tr>' +
-'<tr><td>CRS</td><td><input type="text" name="crs"><button type="button" class="btn-default">Browse</button></td></tr>' +
-'</table><input type="submit" style="display: none;"></form>';
-
-      var dlg = $('#dlg_project');
-      var body = dlg.find('.modal-body');
-      body.html(html);
       body.find('input[name=title]').val(project.title);
       body.find('textarea[name=desc]').val(project.description);
-      body.find('input[name=crs]').val(project.view.getProjection().getCode());
-      body.find('button').click(function () {
-        gui.status.showMessage('Loading EPSG code list...');
-        core.loadScript('js/epsg.js').then(function () {
-          gui.status.clear();
-          var container = $('<div />');
-          var filterBox = $('<input type="text" style="width: 100%;">').on('change keyup', function () {
-            var filter = $(this).val().toLowerCase();
-            $(this).next().children().each(function (index) {
-              if ($(this).html().toLowerCase().indexOf(filter) !== -1) $(this).show();
-              else $(this).hide();
-            });
-          }).appendTo(container);
 
-          var list = $('<ul class="list-group epsg-list" />').css({
-            'overflow-y': 'scroll',
-            'height': '200px'
-          }).appendTo(container);
-          olapp.epsgList.forEach(function (crs) {
-            list.append('<li class="list-group-item">[EPSG:' + crs.code + '] ' + crs.title + '</li>')
-          });
-          list.children().click(function () {
-            list.find('.active').removeClass('active');
-            $(this).addClass('active');
-          });
-
-          bootbox.dialog({
-            title: 'Coordinate Reference Systems',
-            message: container,
-            buttons: {
-              ok: {
-                label: 'OK',
-                className: "btn-primary",
-                callback: function (e) {
-                  var item = list.children('.active');
-                  if (item.length == 0) {
-                    bootbox.alert('No CRS selected');
-                    e.preventDefault();
-                  }
-                  else {
-                    body.find('input[name=crs]').val(item.html().substr(1).split(']')[0]);
-                  }
-                }
-              },
-              cancel: {
-                label: 'Cancel',
-                className: "btn-default",
-                callback: function () {}
-              }
-            }
-          });
-        });
-      });
-      body.children('form').submit(function (e) {
-        e.preventDefault();
-        gui.dialog.project.ok();
-      });
+      var crs = project.view.getProjection().getCode();
+      if (crs.substr(0, 5) == 'EPSG:') {
+        body.find('input[name=crs][value=epsg]').prop('checked', true);
+        body.find('input[name=epsg]').val(crs.substr(5));
+      }
+      else {
+        body.find('input[name=crs][value=proj4]').prop('checked', true);
+        body.find('input[name=proj4]').val(core.crs.definedCRSs[crs]);
+      }
       dlg.modal('show');
     }
 
@@ -1180,35 +1205,28 @@ var olapp = {
         else gui.status.showMessage('Failed to create layer.', 3000);
       };
 
-      var appendItem = function (sourceName, item) {
-        if (item.listItem !== undefined) {
-          list.append(item.listItem);
+      function populateList(sourceName) {
+        var src = source.get(sourceName);
+        if (src.populateList !== undefined) {
+          src.populateList(list);
         }
         else {
-          var html =
+          src.layers.forEach(function (item) {
+            var html =
 '<li class="list-group-item">' +
 '  <button type="button" class="btn btn-primary">Add</button>' +
 '  <span style="display: none;">' + sourceName + '/' + item.id + '</span>' + item.name +
 '</li>';
-          $(html).appendTo(list).children('button').click(function () {
-            var srcname_id = $(this).parent().children('span').text().split('/');
-            addLayer(srcname_id[0], srcname_id[1]);
+            $(html).appendTo(list).children('button').click(function () {
+              var srcname_id = $(this).parent().children('span').text().split('/');
+              addLayer(srcname_id[0], srcname_id[1]);
+            });
           });
         }
-      };
+      }
 
-      if (sourceName === undefined) {
-        source.sourceNames(groupName).forEach(function (sourceName) {
-          source.get(sourceName).layers.forEach(function (item) {
-            appendItem(sourceName, item);
-          });
-        });
-      }
-      else {
-        source.get(sourceName).layers.forEach(function (item) {
-          appendItem(sourceName, item);
-        });
-      }
+      if (sourceName === undefined) source.sourceNames(groupName).forEach(populateList);
+      else populateList(sourceName);
     }
 
   };
@@ -1367,6 +1385,12 @@ var olapp = {
         threejs().stop();
       });
 
+      // z exaggeration
+      $('#three_zexag').find('li').click(function () {
+        $('#three_zexag').find('button span').first().html($(this).text());
+        threejs().setExaggeration(parseFloat($(this).text().replace('x', '')));
+      });
+
       // automatic rotation
       $('#three_rotate').click(function () {
         threejs().rotate(!threejs().isRotating());
@@ -1382,9 +1406,9 @@ var olapp = {
       $('#three_save').click(function () {
         bootbox.dialog({
           title: 'Save the model',
-          message: 'Click save button if you want to save the model in STL format.',
+          message: 'Click save button to save the 3D model (.stl) and the map image (.png).',
           buttons: {
-            stl: {
+            save: {
               label: 'Save',
               className: "btn-primary",
               callback: function () {
@@ -1407,17 +1431,38 @@ var olapp = {
   // olapp.gui.status
   gui.status = {
 
-    clear: function () {    // TODO: optional message id
-      $('#status').fadeOut();
+    _lastMsgIndex: 0,
+
+    clear: function (msg, fade) {
+      var obj;
+      if (msg === undefined) obj = $('#status').children();
+      else if (typeof msg == 'object') obj = $('#' + msg.id);
+      else obj = $('#' + msg);
+
+      if (fade) {
+        obj.fadeOut('normal', function () {
+          $(this).remove();
+        });
+      }
+      else {
+        obj.remove();
+      }
     },
 
-    showMessage: function (html, millisec) {    // TODO: multiple message. Should return message id.
-      $('#status').stop(true, true).html(html).show();
+    showMessage: function (html, millisec) {
+      var msgId = 'status_' + (++this._lastMsgIndex);
+      $('<div/>', {id: msgId}).html(html).appendTo($('#status'));
       if (millisec) {
         window.setTimeout(function () {
-          $('#status').fadeOut();
+          gui.status.clear(msgId, true);
         }, millisec);
       }
+      return {
+        id: msgId,
+        remove: function () {
+          gui.status.clear(msgId);
+        }
+      };
     }
 
   };
@@ -1478,17 +1523,12 @@ var olapp = {
     });
 
     var d = $.Deferred();
-    if (loadingPlugins.length == 0) {
-      window.setTimeout(function () {
-        d.resolve();
-      }, 0);
-    }
-    else {
-      plugin._loadingSets.push({
-        plugins: loadingPlugins,
-        deferred: d
-      });
-    }
+    if (loadingPlugins.length == 0) return d.resolve().promise();
+
+    plugin._loadingSets.push({
+      plugins: loadingPlugins,
+      deferred: d
+    });
     return d.promise();
   };
 
@@ -1619,7 +1659,7 @@ olapp.Project.prototype = {
     var center = this.view.getCenter() || [0, 0];
     var maxZoom = parseInt(olapp.tools.projection.zoomLevelFromResolution(this.view.minResolution_));
     var zoom = this.view.getZoom();
-    var enableRotation = !(this.view.constraints_.rotation === ol.RotationConstraint.disable);
+    var enableRotation = (this.view.constraints_.rotation !== ol.RotationConstraint.disable);
     var initFuncStr = (this.init) ? this.init.toString() : 'undefined';
 
     var layers = [], sources = [];
@@ -1698,8 +1738,7 @@ olapp.Source
 // Constructor
 //   name: source name
 //   layers: List of layer items. Each item should have id and name properties.
-//           Optionally it can have listItem and/or more properties.
-//           listItem property can be a HTML string, a DOM element or a jQuery object.
+//           Not used if populateList method is implemented.
 olapp.Source = function (name, layers) {
   this.name = name;
   this.layers = layers || [];
@@ -1720,7 +1759,10 @@ olapp.Source.prototype = {
   createLayer: function (id, layerOptions) {
     console.log(this.name, 'createLayer method is not implemented');
     return null;
-  }
+  },
+
+  // Implement this method if the source uses custom function to generate list items
+  populateList: undefined
 
 };
 
@@ -2025,7 +2067,7 @@ olapp.createDefaultProject = function () {
       maxZoom: 18,
       zoom: 5
     }),
-    plugins: ['source/naturalearth.js', 'source/gsitiles.js', 'source/gist.js'],
+    plugins: ['source/naturalearth.js', 'source/gsitiles.js', 'source/gist.js', 'import/photo.js'],
     layers: [   // from bottom to top
       {source: 'GSITiles', layer: 'std'},                                // 標準地図
       {source: 'GSITiles', layer: 'relief', options: {visible: false}},  // 色別標高図
