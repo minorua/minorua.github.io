@@ -1,0 +1,71 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="keywords" content="標準地域メッシュ,KML">
+<meta name="robots" content="noindex">
+<title>メッシュコードからKMLを生成する - 三匹のウリボウ</title>
+<script language="JavaScript" type="text/JavaScript" src="lib/jquery-2.2.1.min.js"></script>
+<script language="JavaScript" type="text/JavaScript" src="mesh.js"></script>
+<script language="JavaScript" type="text/JavaScript" src="kml_export.js"></script>
+<script language="JavaScript" type="text/JavaScript" src="meshcode2kml.js"></script>
+
+<style type="text/css">
+body {
+	margin:0px;
+	background-image:url("./mesh.png");
+}
+
+h1, h2 {
+	margin:0px;
+}
+
+table,tr,td {
+}
+
+textarea {
+	height:600px;
+}
+
+button {
+	width:100px;
+	height:100px;
+	border-radius:20px;
+}
+
+#removeTemp {
+	height:60px;
+	border-color:orange;
+	display:none;
+}
+
+</style>
+
+</head>
+<body onload="init()">
+<div>標準地域メッシュまっぷ</div>
+<h1>メッシュコードからKMLを生成する</h1>
+<table align="center">
+<tr><td>
+<div>メッシュコード</div>
+<textarea id="in_box" cols="15" rows="100"></textarea>
+</td><td class="center_pane">
+<button onclick="meshcode2kml(0)">KML表示</button><br><br>
+<!--<button onclick="meshcode2kml(1)" id="exportKML">KML保存</button><br><br><br>
+<button onclick="removeTemp()" id="removeTemp">一時ファイルの削除</button>-->
+</td><td>
+<div>KMLテキスト</div>
+<textarea id="out_box" cols="100" rows="100" wrap="off"></textarea>
+</td></tr></table>
+<h2>使い方</h2>
+<div>左側のテキストボックスにメッシュコード(標準地域メッシュ)を入力する。複数の場合は改行で区切る。KML表示ボタンを押すと右側に矩形のKMLが表示される。
+
+<!--<cite> Google Chrome</cite>ではKML保存ボタンを押すとKMLがファイルに保存される(KMLファイルの生成を終了する時は一時ファイルの削除ボタンを押して下さい)。-->
+
+</div>
+
+<hr>
+<div><a href="../../">ホーム</a> <a href="./">標準地域メッシュまっぷ</a></div>
+<div style="font-size:small;text-align:center;color:gray;">Version Beta. Copyright (c) 2012 Akagi Minoru</div>
+
+</body>
+</html>

@@ -1,0 +1,63 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="keywords" content="標準地域メッシュ,Google Maps API,KML">
+<title>標準地域メッシュまっぷ - 三匹のウリボウ</title>
+<script src="http://maps.google.com/maps/api/js?sensor=false" type="text/javascript"></script>
+<script language="JavaScript" type="text/JavaScript" src="mesh.js"></script>
+<script language="JavaScript" type="text/JavaScript" src="meshmap.js"></script>
+<link rel="stylesheet" type="text/css" href="mesh.css">
+</head>
+<body onload="init()">
+
+<table id="bodytable"><tr><td class="leftpane">
+<div class="leftpane">
+<div class="pane title_banner">標準地域メッシュまっぷ</div>
+
+<div class="pane">
+<form method="get" action="./" onsubmit="return false"> 
+<div>住所</div>
+<input type="text" id="address_box">
+<input type="submit" onclick="jumpToAddress()" value="ジャンプ">
+</form>
+<br>
+
+<form method="get" action="./" onsubmit="return false"> 
+<div>メッシュコード</div>
+<input type="text" id="meshcode_box">
+<input type="submit" onclick="jumpToMeshCode()" value="ジャンプ">
+</form>
+</div>
+
+<!--
+<p>
+マップ中央のメッシュコード
+<div class="meshcode"> <span id="meshcode1" class="meshcode1"></span> - <span id="meshcode2" class="meshcode2"></span> - <span id="meshcode3" class="meshcode3"></span></div>
+</p>
+-->
+
+<div class="pane">
+
+<div class="chu">
+ズームレベルに合わせて一次メッシュから三次メッシュまで表示します。<br>
+メッシュをクリックするとメッシュ番号とメッシュの範囲が吹き出しで表示されます。吹き出し内の座標をクリックすると表示形式が切り替わります。
+<!--<cite> Google Chrome </cite>ブラウザではメッシュをKMLファイルに保存できます(<a href="http://www.html5rocks.com/en/tutorials/file/filesystem/" target="_blank"><cite>FileSystem API</cite></a>)。-->
+<br><br>
+
+この地図は<cite>Google Maps API</cite>を利用しています。<br>
+この地図は<cite>承認番号 平24情使、第794号「基盤地図情報25000 WMS配信サービス」</cite> (<a href="http://www.finds.jp/wsdocs/kibanwms/index.html" target="_blank">配信元</a>)および<cite>「地名WMS配信サービス」</cite> (<a href="http://www.finds.jp/wsdocs/pnwms/index.html.ja" target="_blank">配信元</a>)にアクセスします。
+これらのサービスの提供者は，当該サービスを無保証で提供しており，当該サービスが原因で発生した損害等について，補償等は一切おこないません。
+</div>
+</div>
+
+<p>
+<div id="debug"></div>
+</p>
+
+</td><td class="rightpane">
+<div id="map_canvas"></div>
+</td></tr></table>
+
+<div style="font-size:small;"><a href="../">ホーム</a> | <a href="meshcode2kml.html">[メッシュコードからKMLを生成する(試行)]</a> Version Beta. <a href="readme.html">[更新履歴]</a> Copyright (c) 2012 Minoru Akagi</div>
+</body>
+</html>
