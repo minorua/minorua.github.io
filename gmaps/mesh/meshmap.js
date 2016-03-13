@@ -292,6 +292,9 @@ function showMeshCode(meshcode) {
 	contentString = "<div>メッシュコードは<br><span class='meshcode'>" + fMeshcode + "</span></div>";
 	contentString += "<div class='bounds' onclick='onBoundsClicked(this)'><span class='bounds'>" + urlValue + "</span><span class='text'>NE: " + ne + "<br>SW: " + sw + "</span></div>";
 
+	var url = location.href.split("#")[0] + "#" + fMeshcode;
+	contentString += "<p>このメッシュへの<a href='" + url + "' target='_blank'>リンク</a></p>";
+
 /*	contentString += "<div style='text-align:right;margin-top:3px;'><a href='meshcode2kml.html?" + fMeshcode + "' target='meshcode2kml' class='viewKML'>[KML表示]</a>";
 	if(exportKML_enabled) {
 		contentString += " <span class='exportKML' onclick='onClickedExportKML(" + fMeshcode + ")'>[KML保存]</span>";
