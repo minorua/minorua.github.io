@@ -1,18 +1,24 @@
-/*   mesh.js - 
-*    Copyright (C) 2012 Minoru Akagi
-*
-*    This program is free software: you can redistribute it and/or modify
-*    it under the terms of the GNU General Public License as published by
-*    the Free Software Foundation, either version 3 of the License, or
-*    (at your option) any later version.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+/*
+mesh.js
+Copyright (c) 2012 Minoru Akagi
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
 */
 var mesh1st_list = {30:[36],36:[22,23,24,31,41,53],37:[24,25,41],38:[31,41],39:[26,27,28,42],40:[27,28,40,42],41:[28,29,42],42:[29,30],43:[28,29],44:[29,40],45:[29,30,31,40],46:[29,30,31],47:[28,29,30,31,39,40],48:[28,29,30,31,39],49:[28,29,30,31,32,33,34,39],50:[29,30,31,32,33,34,35,36,38,39],51:[29,30,31,32,33,34,35,36,37,38,39],52:[29,31,32,33,34,35,36,37,38,39,40],53:[32,33,34,35,36,37,38,39,40],54:[32,33,35,36,37,38,39,40],55:[36,37,38,39,40,41],56:[36,37,38,39,40,41],57:[38,39,40,41],58:[39,40,41],59:[39,40,41,42],60:[39,40,41],61:[39,40,41],62:[39,40,41,43],63:[39,40,41,42,43],64:[39,40,41,42,43,44,45],65:[40,41,42,43,44,45],66:[41,42,43,44,45],67:[41,42],68:[40,41,42]};
 
@@ -154,14 +160,3 @@ function ArrayIndexOf(a, o) {
 	}
 	return -1;
 }
-/*
-// for IE
-if(!Array.indexOf) {
-	Array.prototype.indexOf = function(o) {
-		for(var i in this) {
-			if(this[i] == o) return i;
-		}
-		return -1;
-	}
-}
-*/
