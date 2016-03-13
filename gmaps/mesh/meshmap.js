@@ -202,8 +202,6 @@ function init() {
 		elm.src = "kml_export.js";
 		document.getElementsByTagName("head").item(0).appendChild(elm);
 	}
-	onResize();		// for initial alignment
-	window.onresize = onResize;
 
 	map = new google.maps.Map(
 		document.getElementById("map_canvas"), {
@@ -229,17 +227,13 @@ function init() {
 	});
 
 	geocoder = new google.maps.Geocoder();
+
+	// jump to the mesh extent of specified code
+	var meshcode = window.location.hash.substring(1);
+	if (meshcode) jumpToMeshCode(meshcode);
 }
 
 // event handlers
-function onResize() {
-	if(isMSIE) {
-		document.getElementById("map_canvas").parentNode.style.width = (document.body.clientWidth - 240) + "px";
-	}
-	table = document.getElementById("bodytable");
-	table.style.height = (document.body.clientHeight - table.offsetTop - 18) + "px";
-}
-
 function onMapTypeIdChanged() {
 	mapTypeId = map.getMapTypeId();
 	if(mapTypeId == "kiban25000") {
