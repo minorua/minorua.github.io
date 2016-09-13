@@ -1,0 +1,147 @@
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+#webgl {
+  /* sky-like */
+  background: linear-gradient(to bottom, #98c8f6 0%,#cbebff 40%,#f0f9ff 100%);
+}
+
+#footer {
+  position: absolute;
+  left: 5px;
+  bottom: 5px;
+}
+
+#infobtn {
+  color: white;
+  background: rgba(152, 200, 246, 0.8);
+  border: solid 4px rgba(255, 255, 255, 0.8);
+  border-radius: 20px;
+  box-shadow: 0 0 0 2px rgba(152, 200, 246, 0.3);
+  width: 24px;
+  height: 24px;
+  text-align: center;
+  font-family: serif;
+  font-weight: bold;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* popup */
+#popup {
+  background: rgba(255, 255, 255, 0);
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  max-width: 480px;
+  min-width: 300px;
+  z-index: 9999;
+}
+
+#popupbar {
+  background: rgba(0, 0, 0, 0);
+  height: 14px;
+}
+
+#closebtn {
+  background: lightgray;
+  border: 2px solid gray;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: bold;
+  opacity: 0.5;
+  width: 10px;
+  height: 10px;
+  text-align: center;
+  float: right;
+  margin-bottom: -14px;
+  margin-right: -14px;
+  cursor: pointer;
+}
+
+#popupcontent {
+  background-color: white;
+  border: solid gray;
+  border-width: 1px 2px 1px;
+  border-radius: 3px;
+  padding: 4px 5px 2px;
+  max-height: 500px;
+  overflow: auto;
+}
+
+/* identify result */
+#popupcontent table {
+  margin-top: 5px;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+#popupcontent table caption {
+  background-color: gray;
+  color: white;
+  font-size: small;
+  padding: 1px;
+  padding-left: 6px;
+  text-align: left;
+}
+
+#popupcontent table td {
+  padding-left: 5px;
+}
+
+table.layer tr {
+  background-color: #eeeeee;
+}
+
+table.coords tr {
+  background-color: #eeeeee;
+}
+
+table.attrs tr:nth-child(odd) {
+  background-color: #eeeeee;
+}
+
+
+table.attrs tr td:first-child {
+  width: 40%;
+}
+
+/* pageinfo */
+#urlbox {
+  width: 100%;
+}
+
+#pageinfo h1 {
+  background-color: gray;
+  color: white;
+  font-size: small;
+  font-weight: normal;
+  margin-top: 5px;
+  margin-bottom: 3px;
+  padding: 1px;
+  padding-left: 6px;
+}
+
+#usage, #about {
+  margin-left: 5px;
+}
+
+#pageinfo ul {
+  margin: 5px;
+  margin-left: 20px;
+  padding: 0px;
+}
+
+.license {
+  font-size: xx-small;
+}
+
+/* label */
+.label {
+  padding: 2px;
+  text-shadow: 1px 1px #FFF, -1px 1px #FFF, 1px -1px #FFF, -1px -1px #FFF;
+  position: absolute;
+  pointer-events: none;
+}
