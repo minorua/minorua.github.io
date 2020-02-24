@@ -1,0 +1,12 @@
+CACHE MANIFEST
+CACHE:
+index.html
+settings.html
+timeline.css
+timeline.js
+timeline.png
+jquery.js
+localStorageList.js
+
+NETWORK:
+index_nocache.html

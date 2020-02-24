@@ -1,0 +1,180 @@
+body {
+	padding:0px;
+	margin:0px;
+}
+
+table.header {
+	color:white;
+	background-color:steelblue;
+	width:100%;
+	height:40px;
+	text-align:center;
+	vertical-align:middle;
+}
+
+td.lbutton, td.rbutton {
+	font-size:x-small;
+	width:50px;
+	border:2px solid #3366CC;
+	background-color:#4682CC;
+	cursor:pointer;
+}
+
+td.title {
+	font-size:x-large;
+	font-weight:bold;
+}
+
+td.title a {
+	text-decoration:none;
+}
+
+td.title a:link {
+	color:white;
+}
+
+td.title a:visited {
+	color:white;
+}
+
+div.footer {
+	color:gray;
+	font-size:small;
+	text-align:center;
+}
+
+form.inputform {
+	margin:0px;
+	padding:0px;
+	margin-top:10px;
+}
+
+#progress_parent {
+	display:none;
+	position:absolute;
+	top:50px;
+	width:100%
+}
+
+#progress {
+	margin:10px;
+	height:15px;
+}
+
+#status {
+	position:absolute;
+	top:40px;	/* height of title bar */
+	left:0px;
+	width:100%;
+	height:20px;
+
+	color:gray;
+	font-size:small;
+	text-align:center;
+}
+
+#time {
+	display:none;
+}
+
+#recordcount {
+	color:gray;
+}
+
+#timeline {
+	margin:0px;
+	padding-left:0px;
+	list-style-type:none;
+	border:1px solid lightgray;
+}
+
+#timeline li {
+	border-bottom:1px solid lightgray;
+}
+
+#timeline li.focused {
+	background-color:#CCFFCC;
+}
+
+.star {
+	font-size:xx-small;
+	color:yellow;
+}
+
+.status {
+	font-size:xx-small;
+	color:green;
+}
+
+input.check {
+
+}
+
+a.edit {
+	font-size:xx-small;
+	text-decoration:none;
+}
+
+a.edit:link {
+	color:lightgray;
+}
+
+a.edit:visited {
+	color:lightgray;
+}
+
+a.remove {
+	font-size:xx-small;
+	text-decoration:none;
+}
+
+a.remove:link {
+	color:lightgray;
+}
+
+a.remove:visited {
+	color:lightgray;
+}
+
+#popupmenu {
+	display:none;
+	position:absolute;
+	left:10px;
+	top:10px;
+	background-color:white;
+	border:2px solid navy;
+}
+
+.menulist {
+	margin:10px;
+	padding-left:0px;
+	list-style-type:none;
+	border:1px solid lightgray;
+}
+
+.menulist li {
+	padding:5px;
+	border-bottom:1px solid lightgray;
+}
+
+.menulist a{
+	font-size:xx-large;
+	font-weight:bold;
+	text-decoration:none;
+}
+
+.menulist a:link{
+	color:gray;
+}
+
+.menulist a:visited{
+	color:gray;
+}
+
+.menulist img {
+	width:48px;
+	height:48px;
+}
+
+/* stop-watch */
+div#disp{text-shadow: 5px 5px 5px gray;text-align:center;font-size:large;}

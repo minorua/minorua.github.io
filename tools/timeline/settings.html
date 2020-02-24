@@ -1,0 +1,103 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name='viewport' content='width=device-width,initial-scale=1.0'/>
+<link rel='icon' type='image/png' href='./timeline.png'/>
+<link rel="apple-touch-icon" href="./timeline.png"/>
+<script language="JavaScript" type="text/JavaScript" src="./jquery.js"></script>
+<script language="JavaScript" type="text/JavaScript" src="./localStorageList.js"></script>
+<script language="JavaScript" type="text/JavaScript">
+<!--
+var settings;
+var storage_prefix = 'tl_';
+
+function onSettingPageLoad() {
+	debugger;
+	
+	var str = localStorage['settings'];
+	if(str == null) {
+		// Default settings
+		
+		settings = {
+			pageTitle:'名称未設定',
+			URL:location.href.replace("/settings.html", ""),
+			SyncRecentDay:3,
+			SyncStar:false,
+			AutoUpload:false,
+			UploadMinPassedSec:1800
+		};
+		localStorage['settings'] = JSON.stringify(settings);
+	}
+	else {
+		settings = JSON.parse(str);
+	}
+
+	updateForm();
+}
+
+function updateForm() {
+	var cfg=document.configform;
+	cfg.pageTitle.value=settings.pageTitle;
+	cfg.URL.value=settings.URL;
+	cfg.SyncRecent.checked=(settings.SyncRecentDay>0);
+	cfg.SyncStar.checked=settings.SyncStar;
+	cfg.NumRecentDays.value=settings.SyncRecentDay;
+	cfg.AutoUpload.checked=settings.AutoUpload;
+	cfg.UploadMinPassedSec.value=settings.UploadMinPassedSec;
+}
+
+function saveSettings() {
+	var cfg=document.configform;
+	settings = {
+		pageTitle:cfg.pageTitle.value,
+		URL:cfg.URL.value,
+		SyncRecentDay:(cfg.SyncRecent.checked)?cfg.NumRecentDays.value:0,
+		SyncStar:cfg.SyncStar.checked,
+		AutoUpload:cfg.AutoUpload.checked,
+		UploadMinPassedSec:cfg.UploadMinPassedSec.value
+	};
+	localStorage['settings'] = JSON.stringify(settings);
+
+	location.reload();
+}
+
+function remove_data() {
+	storageList = new localStorageList(storage_prefix);
+	storageList.clear();
+
+	alert('データを削除しました.');
+	location.reload();
+}
+
+//-->
+</script>
+
+<title>設定 - タイムライン</title>
+</head>
+<body onload='onSettingPageLoad()'>
+<center>
+<div style='font-size:large;'>タイムラインの設定</div>
+<br>
+<form name='configform' onsubmit='saveSettings();return false;'>
+<table>
+<tr><td>Title:</td><td><input type='text' name='pageTitle'></td></tr>
+<tr><td>URL:</td><td><input type='text' name='URL'></td></tr>
+
+<tr><td colspan=2><br>同期を行うアイテム:</td></tr>
+<tr><td>日付条件: </td><td><input type='checkbox' name='SyncRecent'>最近<input type='text' name='NumRecentDays' size=2>日のメモ</td></tr>
+<tr><td>状態条件: </td><td><input type='checkbox' name='SyncStar'>すべてのスターアイテム</td></tr>
+
+<tr><td colspan=2><br>アップロード設定:</td></tr>
+<tr><td></td><td><input type="checkbox" name="AutoUpload"/>投稿時自動アップロード</td></tr>
+<tr><td></td><td><input type="text" name="UploadMinPassedSec" size=4/>秒以上経過したメモをアップロードする</td></tr>
+</table>
+
+<input type='submit' value='保存'>
+<hr>
+<div><a href='./'>タイムラインに戻る</a></div>
+</center>
+<hr>
+<div align='right'>管理メニュー<br><a href='#' onclick='remove_data()'>データの削除</a></div>
+
+</body>
+</html>
