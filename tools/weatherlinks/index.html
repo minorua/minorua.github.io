@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ja">
+
+  <head>
+    <meta charset="utf-8">
+
+    <title>Home</title>
+
+    <meta name="description" content="Document home page">
+    <meta name="author" content="Minoru Akagi">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+    <link rel="stylesheet" href="reveal.js/css/reveal.css">
+    <link rel="stylesheet" href="reveal.js/css/theme/sky.css" id="theme">
+  </head>
+
+  <body>
+
+    <div class="reveal">
+
+      <!-- Any section element inside of this container is displayed as a slide -->
+      <div class="slides">
+        <section data-markdown
+                 data-separator="^\n\n\n"
+                 data-separator-vertical="^\n\n">
+          <script type="text/template">
+## Weather
+
+[岡山地方気象台](https://www.jma-net.go.jp/okayama/)
+
+[天気予報](https://www.jma.go.jp/jp/yoho/340.html)/[時系列予報](https://www.jma.go.jp/jp/jikei/340.html)/[週間天気予報](https://www.jma.go.jp/jp/week/340.html)/[季節予報](http://www.jma.go.jp/jp/longfcst/107_00.html)
+
+[アメダス](https://www.jma.go.jp/jp/amedas_h/today-66408.html?areaCode=000&groupCode=49)/[ナウキャスト](https://www.jma.go.jp/jp/radnowc/index.html?areaCode=212)/[今月の日ごとの値](./thismonth.html)
+
+
+
+Powered by [reveal.js](https://github.com/hakimel/reveal.js/)
+          </script>
+        </sectin>
+
+      </div>
+
+    </div>
+
+    <script src="reveal.js/lib/js/head.min.js"></script>
+    <script src="reveal.js/js/reveal.js"></script>
+
+    <script>
+
+      // Full list of configuration options available at:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        controls: true,
+        progress: true,
+        history: true,
+        center: true,
+
+        transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+        // Optional reveal.js plugins
+        dependencies: [
+          { src: 'reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: 'reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: 'reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: 'reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+          { src: 'reveal.js/plugin/zoom-js/zoom.js', async: true },
+          { src: 'reveal.js/plugin/notes/notes.js', async: true }
+        ]
+      });
+
+    </script>
+
+  </body>
+</html>
