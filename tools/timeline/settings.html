@@ -7,24 +7,20 @@
 <script language="JavaScript" type="text/JavaScript" src="./jquery.js"></script>
 <script language="JavaScript" type="text/JavaScript" src="./localStorageList.js"></script>
 <script language="JavaScript" type="text/JavaScript">
-<!--
 var settings;
 var storage_prefix = 'tl_';
 
 function onSettingPageLoad() {
-	debugger;
-	
 	var str = localStorage['settings'];
 	if(str == null) {
 		// Default settings
-		
 		settings = {
-			pageTitle:'名称未設定',
-			URL:location.href.replace("/settings.html", ""),
-			SyncRecentDay:3,
-			SyncStar:false,
-			AutoUpload:false,
-			UploadMinPassedSec:1800
+			pageTitle: 'タイムライン',
+			URL: 'https://192.168.0.5:8080/timeline/api',
+			SyncRecentDay: 3,
+			SyncStar: false,
+			AutoUpload: false,
+			UploadMinPassedSec: 1800
 		};
 		localStorage['settings'] = JSON.stringify(settings);
 	}
@@ -69,7 +65,6 @@ function remove_data() {
 	location.reload();
 }
 
-//-->
 </script>
 
 <title>設定 - タイムライン</title>

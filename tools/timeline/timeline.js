@@ -26,14 +26,8 @@ function onLoad() {
 	}
 	settings = JSON.parse(str);
 
-	$('.title').html('<a href="./">'+settings.pageTitle+'</a>');
-
-	var numRecords = storageList.count();
-	var numTw = 0;
-	for(i = 0; i < numRecords; i++) {
-		var row = storageList.get(i);
-		if(row.status > 0 && row.imported == 0) numTw++;
-	}
+  document.title = settings.pageTitle;
+	$('.title').html('<a href="./">' + settings.pageTitle + '</a>');
 
 	// initialize input box
 	init_inputbox();
@@ -45,10 +39,6 @@ function onLoad() {
 	// update list
 	update_timeline();
 	// updateLocation();
-
-	if(numTw > 50) {
-		if(confirm('アップロードされていないメモが50件以上あります. 同期しますか?')) sync();
-	}
 }
 
 function onRButton() {
@@ -59,8 +49,6 @@ function onRButton() {
   }
 
 	callbackUploadFinished = function () {
-		$('#progress_parent').hide();
-		status('');
 		update_timeline();
 	};
 
@@ -230,7 +218,6 @@ function enter() {
     if (uploadList.length > 0) return;    // previous uploading has not finished
 
     callbackUploadFinished = function () {
-      $('#progress_parent').hide();
       status('');
       update_timeline();
     };
@@ -319,107 +306,42 @@ function upload_records(minimum_passed_time) {
 	}
 
 	var numUpload = uploadList.length;
-
 	if (numUpload == 0) {
-		status('アップロードされていないメモはありません.');
+		status('アップロードされていないメモはありません.', 3000);
 		if(callbackUploadFinished) callbackUploadFinished();
     return;
 	}
 
 	status(numUpload + '件の未アップロードメモをアップロードしています.');
 
-	$('#progress_parent').show();
-	//progressBar = new html5jp.progress('progress', {full: numUpload, animation: 0});
-	//progressBar.draw();
+  console.log("uploading...");
 
-	var httpObj = new XMLHttpRequest();
-	httpObj.onreadystatechange = function() {
-    if(httpObj.readyState==4 && httpObj.status==200) {
-      try {
-        var res = JSON.parse(httpObj.responseText);
-        if (res['code'] === 0) {
-          for(var i = 0; i < uploadList.length; i++) {
-            var index = uploadList[i].index,
-                data = storageList.get(index);
-            data.exported = 1;
-            storageList.set(index, data);
-          }
-
-          status(res['message']);
-          if(callbackUploadFinished) callbackUploadFinished();
-        }
-        else {
-          // if not succeeded, try uploading one by one
-          status(res['message'] + ' - 1件ずつアップロードします.');
-          upload_onebyone();
-        }
-      } catch(e) {
-        console.log(httpObj.responseText);
-        alert(e);
-      }
-    }
-  }
-
-  httpObj.open('post', 'cmd.php', true);
-  httpObj.setRequestHeader("Content-Type","application/x-www-form-urlencoded;charset=UTF-8");
-  var data = 'action=add&jsondata='+encodeURIComponent(JSON.stringify(uploadList));
-  httpObj.send(data);
-
-/*  $.ajax({
+  $.ajax({
     type: 'POST',
-    url: 'cmd.php',
+    url: settings.URL,
+    contentType: 'application/json; charset=utf-8',
     data: JSON.stringify({
       action: "add",
-      jsondata: uploadList
+      data: uploadList
     }),
-    contentType: 'application/json',
     dataType: 'json',
     success: function(result) {
-      alert(result.message);
+      console.log(result);
+      if (result.status == 200) {
+        var index, record;
+        // set exported flag to 1
+        for(var i = 0; i < uploadList.length; i++) {
+          index = uploadList[i].index;
+          data = storageList.get(index);
+          data.exported = 1;
+          storageList.set(index, data);
+        }
+      }
+      uploadList = [];
+      if(callbackUploadFinished) callbackUploadFinished();
+      status(result.msg, 5000);
     }
-  });*/
-}
-
-function upload_onebyone() {
-	upload_next();
-}
-
-function upload_next() {
-	if(uploadList.length>0) {
-		var row = uploadList.shift();
-		pmemo(row.ts,row.text,row.index);
-	}
-}
-
-function pmemo(ts,text,index) {
-	//if(twpcheck()==false) return;
-	var data='action=add&ts='+ts+'&text='+encodeURIComponent(text)+'&terminal=16';
-	var httpObj = new XMLHttpRequest();
-	if(httpObj) {
-		httpObj.onreadystatechange = function() {
-			if(httpObj.readyState==4 && httpObj.status==200) {
-				if(httpObj.responseText.substr(0,2)=='ok') {
-					data = storageList.get(index);
-					data.exported = 1;
-					storageList.set(index,data);
-
-					numUploaded++;
-					//progressBar.set_val(numUploaded);
-					if(uploadList.length == 0 && numUploadError == 0) {
-						if(callbackUploadFinished) callbackUploadFinished();
-					}
-				}
-				else {
-					status('ERROR:'+httpObj.responseText);
-					numUploadError++;
-				}
-				upload_next();
-			}
-		}
-		httpObj.open('post','cmd.php',true);
-		httpObj.setRequestHeader("Content-Type","application/x-www-form-urlencoded;charset=UTF-8");
-		httpObj.send(data);
-	}
+  });
 }
 
 function download_records() {
@@ -461,7 +383,6 @@ function download_records() {
 			}
 
 			$('#progress').html('');
-			$('#progress_parent').hide();
 			update_timeline();
 		}
 	}
@@ -480,7 +401,7 @@ function close_menu() {
 	$('#popupmenu').css('display','none');
 }
 
-function status(msg, isHtml) {
+function status(msg, duration, isHtml) {
 	var statusdiv = $('#status');
 	if(statusTimer != null) {
 		clearTimeout(statusTimer);
@@ -496,13 +417,11 @@ function status(msg, isHtml) {
     else statusdiv.text(msg);
 		statusdiv.show();
 
-		// timeout付メッセージ
-		if(arguments.length==2) {
-			timeout = arguments[1];
+    if (duration) {
 			statusTimer = setTimeout(function() {
 				statusdiv.hide();
 				statusdiv.text('');
-			}, timeout);
+			}, duration);
 		}
 	}
 }
@@ -523,23 +442,6 @@ function now() {
 	if(second<10) second='0'+second;
 	
 	return year+'-'+month+'-'+day+' '+hour+':'+minute+':'+second;
-}
-
-function getHttpRequestData(type,url,data) {
-	var res;
-	$.ajax({
-		type: type,
-		async: false,		// 同期通信
-		url: url,
-		data: data,
-		success: function (response) {
-			res = response;
-		},
-		error: function (XMLHttpRequest, textStatus, errorThrown) {
-			console.log('Error: getHttpRequestData');
-		}
-	});
-	return res;
 }
 
 function updateLocation() {
