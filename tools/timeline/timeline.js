@@ -113,14 +113,14 @@ function update_timeline() {
     var row = storageList.get(index);
     if(row.status != 0) {
       var editstr = '';
-      if (row.imported==0) {
+      if (row.imported == 0) {
         editstr = '<a href="#" class="edit">変更</a> | <a href="#" class="remove">削除</a>';
       }
 
       var stts = '';
-      if(row.status>1) stts+='<span class="star">☆</span>';
-      if(row.exported!=0) stts+='<span class="status">[exported]</span>';
-      if(row.imported!=0) stts+='<span class="status">[online]</span>';
+      if(row.status > 1) stts+='<span class="star">☆</span>';
+      if(row.exported != 0) stts+='<span class="status">[exported]</span>';
+      if(row.imported != 0) stts+='<span class="status">[online]</span>';
 
       $('#timeline').append('<li id="li'+index+'"><input type="checkbox" class="check" name="check" value="'+index+'">'+row.ts+' <span class="itemtext">'+row.text+'</span> '+editstr+stts+'</li>');
       num_listitem++;
@@ -193,7 +193,7 @@ function enter() {
   $('#logbutton').attr('disabled','disabled');
 
   if(editting_index===null) {
-    data = {ts:now(),text:text,status:1,exported:0,imported:0};
+    data = {ts: now(), text: text, status: 1, exported: 0, imported: 0};
     storageList.add(data);
   }
   else {
@@ -276,7 +276,8 @@ function sync() {
   upload_records(0, function () {
     storageList.clear();
     update_timeline();
-  });     // TODO: download_records);
+    download_records();
+  });
 }
 
 function str2date(str) {
@@ -342,8 +343,8 @@ function upload_records(minimum_passed_time, successCallback) {
 }
 
 function download_records() {
-  var p = ['action=get', 'format=json'];
-
+  /*
+  var p = [];
   var type = [];
   if(settings.SyncType.memo) type.push(1);
   if(settings.SyncType.link) type.push(2);
@@ -351,40 +352,46 @@ function download_records() {
 
   if(settings.SyncRecentDay) p.push('recent=' + settings.SyncRecentDay);
   if(settings.SyncStar) p.push('star');
-
-  var param = p.join('&');
-  var i,lines,field;
+  */
 
   var msg = $('#status').text();
   if (msg) msg = ' (' + msg + ')';
   status('ダウンロード中です.' + msg);
 
-  var httpObj = new XMLHttpRequest();
-  httpObj.onreadystatechange = function() {
-    if(httpObj.readyState==4 && httpObj.status==200) {
+
+  $.ajax({
+    type: 'GET',
+    url: settings.URL,
+    data: {
+      days: settings.SyncRecentDay || 0,
+    },
+    dataType: 'json',
+    success: function(result) {
+
       storageList.clear();
 
       try {
-      	data = JSON.parse(httpObj.responseText);
-      	status(data.length+'件のメモをダウンロードしました.');
+        status(result.length + '件のメモをダウンロードしました.');
 
-      	for(i = 0; i < data.length; i++) {
-      		storageList.add(data[i]);
-      	}
+        for(var i = 0; i < result.length; i++) {
+          result[i].imported = 1;
+          result[i].exported = 0;
+          storageList.add(result[i]);
+        }
 
-      	if(data.length == 0) status('ダウンロードされたメモはありません.');
-      	else status('同期が完了しました.');
+        if(result.length == 0) status('ダウンロードされたメモはありません.');
+        else status('同期が完了しました.');
       } catch(e) {
-      	console.log(httpObj.responseText);
-      	alert(e);
+        console.log(httpObj.responseText);
+        alert(e);
       }
 
-      $('#progress').html('');
       update_timeline();
+    },
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+      status("エラー: " + textStatus, 10000)
     }
-  }
-  httpObj.open('get','cmd.php?'+param,true);
-  httpObj.send(null);
+  });
 }
 
 
