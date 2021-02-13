@@ -94,5 +94,18 @@ isSettingPage = false;
 </div>
 
 <div class='footer'>since 2014-06-27</div>
+
+<script language="JavaScript" type="text/JavaScript">
+
+if ('serviceWorker' in navigator) {
+  try {
+    navigator.serviceWorker.register('sw.js');
+  } catch ( error ) {
+
+  }
+}
+
+</script>
+
 </body>
 </html>
