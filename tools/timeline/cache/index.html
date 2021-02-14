@@ -3,17 +3,17 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name='viewport' content='width=device-width,initial-scale=1.0'/>
-<link rel='icon' type='image/png' href='./timeline.png'/>
-<link rel="apple-touch-icon" href="./timeline.png"/>
+<link rel='icon' type='image/png' href='../timeline.png'/>
+<link rel="apple-touch-icon" href="../timeline.png"/>
 
 <!--
 <meta name='apple-mobile-web-app-capable' content='YES'/>
 <meta name="apple-touch-fullscreen" content="YES"/>
 -->
-<link href="./timeline.css" rel="stylesheet" type="text/css">
-<script language="JavaScript" type="text/JavaScript" src="./jquery.js"></script>
-<script language="JavaScript" type="text/JavaScript" src="./localStorageList.js"></script>
-<script language="JavaScript" type="text/JavaScript" src="./timeline.js"></script>
+<link href="../timeline.css" rel="stylesheet" type="text/css">
+<script language="JavaScript" type="text/JavaScript" src="../jquery.js"></script>
+<script language="JavaScript" type="text/JavaScript" src="../localStorageList.js"></script>
+<script language="JavaScript" type="text/JavaScript" src="../timeline.js"></script>
 
 <style type="text/css">
 <!--
@@ -24,10 +24,22 @@
 <script language="JavaScript" type="text/JavaScript">
 isSettingPage = false;
 
+const cacheName = 'timeline202102';
+
 function onRButton() {
-	sync();
-	return false;
+
+navigator.serviceWorker.getRegistration(cacheName).then((registration) => {
+	if (registration) {
+		registration.unregister();
+
+		window.location.href = "../";
+	}
+	else {
+		alert("Service Workerは登録されていません");
+	}
 });
+
+}
 
 </script>
 
@@ -35,7 +47,7 @@ function onRButton() {
 </head>
 <body onload='onLoad()' onfocus='document.inputform.inputbox.focus()'>
 
-<table class='header'><tr><td class='lbutton' onclick='popup_menu();'>メニュー</td><td class='title'><a href='./index.html'>名称未設定</a></td><td class='rbutton' onclick='onRButton();'>同期</td></tr></table>
+<table class='header'><tr><td class='lbutton' onclick='popup_menu();'>メニュー</td><td class='title'><a href='./index.html'>名称未設定</a></td><td class='rbutton' onclick='onRButton();'>同期ページ</td></tr></table>
 
 <div id='progress_parent' align='center'>
 <div id='progress'></div>
@@ -99,5 +111,18 @@ function onRButton() {
 </div>
 
 <div class='footer'>since 2014-06-27</div>
+
+<script language="JavaScript" type="text/JavaScript">
+
+if ('serviceWorker' in navigator) {
+  try {
+    navigator.serviceWorker.register('sw.js');
+  } catch ( error ) {
+
+  }
+}
+
+</script>
+
 </body>
 </html>

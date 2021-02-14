@@ -1,13 +1,13 @@
 const assets = [
 	'./',
 
-	'./timeline.png',
+	'../timeline.png',
 
-	'./timeline.css',
+	'../timeline.css',
 
-	'./jquery.js',
-	'./localStorageList.js',
-	'./timeline.js'
+	'../jquery.js',
+	'../localStorageList.js',
+	'../timeline.js'
 ];
 
 const cacheName = 'timeline202102';
