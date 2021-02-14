@@ -2,7 +2,6 @@ const assets = [
 	'./',
 
 	'../timeline.png',
-
 	'../timeline.css',
 
 	'../jquery.js',

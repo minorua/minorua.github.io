@@ -24,20 +24,9 @@
 <script language="JavaScript" type="text/JavaScript">
 isSettingPage = false;
 
-const cacheName = 'timeline202102';
-
 function onRButton() {
-
-navigator.serviceWorker.getRegistration(cacheName).then((registration) => {
-	if (registration) {
-		registration.unregister();
-
-		window.location.href = "../";
-	}
-	else {
-		alert("Service Workerは登録されていません");
-	}
-});
+	window.location.href = "../";
+}
 
 }
 
@@ -102,7 +91,6 @@ navigator.serviceWorker.getRegistration(cacheName).then((registration) => {
 
 <div id='popupmenu'>
 <ul class='menulist'>
-<li><a href='#' onclick='sync(); return false;'>同期</a></li>
 <li><a href='#' onclick='$("#inputbox").height(150); return false;'>入力ボックスを大きく</a></li>
 <li><a href='./settings.html' onclick='close_menu()'>設定</a></li>
 
