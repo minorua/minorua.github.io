@@ -337,7 +337,9 @@ function upload_records(minimum_passed_time, successCallback) {
       status(result.msg, 5000);
     },
     error: function(XMLHttpRequest, textStatus, errorThrown) {
-      status("エラー: " + textStatus, 10000)
+      var baseUrl = settings.URL.split("/").slice(0, 3).join("/");
+      status("<div>エラー: " + textStatus + "</div><div><a href='" + baseUrl + "'>" + baseUrl + "</a></div>",
+             10000, true)
     }
   });
 }
