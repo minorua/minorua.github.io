@@ -37,11 +37,6 @@ function renderChoices() {
   });
   // 現在のリストID表示
   let listIdDiv = document.getElementById('list-id');
-  if (!listIdDiv) {
-    listIdDiv = document.createElement('div');
-    listIdDiv.id = 'list-id';
-    list.parentElement.insertBefore(listIdDiv, list);
-  }
   listIdDiv.textContent = 'リストID: ' + getListId();
 }
 
