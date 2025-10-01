@@ -8,3 +8,4 @@ button:hover { background: #005fa3; }
 #choice-list { list-style: none; padding: 0; margin-bottom: 1em; }
 #choice-list li { background: #e9e9e9; margin-bottom: 0.3em; padding: 0.5em; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
 #result { margin-top: 1em; font-size: 1.2em; font-weight: bold; color: #0078d7; min-height: 2em; }
+#list-id { font-size: 0.95em; color: #555; margin-bottom: 0.5em; background: #e3f1ff; padding: 0.3em 0.7em; border-radius: 4px; display: inline-block; }

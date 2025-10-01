@@ -1,13 +1,21 @@
-// main.js
-const STORAGE_KEY = 'random_choices';
+
+// URLパラメータからリストID取得
+function getListId() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('id') || 'default';
+}
+
+function getStorageKey() {
+  return 'random_choices_' + getListId();
+}
 
 function getChoices() {
-  const data = localStorage.getItem(STORAGE_KEY);
+  const data = localStorage.getItem(getStorageKey());
   return data ? JSON.parse(data) : [];
 }
 
 function saveChoices(choices) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(choices));
+  localStorage.setItem(getStorageKey(), JSON.stringify(choices));
 }
 
 function renderChoices() {
@@ -27,6 +35,14 @@ function renderChoices() {
     li.appendChild(delBtn);
     list.appendChild(li);
   });
+  // 現在のリストID表示
+  let listIdDiv = document.getElementById('list-id');
+  if (!listIdDiv) {
+    listIdDiv = document.createElement('div');
+    listIdDiv.id = 'list-id';
+    list.parentElement.insertBefore(listIdDiv, list);
+  }
+  listIdDiv.textContent = 'リストID: ' + getListId();
 }
 
 document.getElementById('choice-form').onsubmit = function(e) {
