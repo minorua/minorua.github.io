@@ -69,4 +69,27 @@ document.getElementById('random-btn').onclick = function() {
   resultDiv.textContent = '選ばれたのは: ' + choices[idx];
 };
 
-window.onload = renderChoices;
+window.onload = function() {
+  renderChoices();
+  // タイトルのlocalStorageキー
+  const TITLE_KEY = 'randomchoice_title_' + getListId();
+  // タイトルをlocalStorageからロード
+  const savedTitle = localStorage.getItem(TITLE_KEY);
+  if (savedTitle) {
+    document.getElementById('main-title').textContent = savedTitle;
+    document.title = savedTitle;
+  }
+  // タイトル編集ボタンのイベント
+  const editBtn = document.getElementById('edit-title-btn');
+  if (editBtn) {
+    editBtn.onclick = function() {
+      const currentTitle = document.getElementById('main-title').textContent;
+      const newTitle = prompt('新しいタイトルを入力してください', currentTitle);
+      if (newTitle && newTitle.trim()) {
+        document.getElementById('main-title').textContent = newTitle.trim();
+        document.title = newTitle.trim();
+        localStorage.setItem(TITLE_KEY, newTitle.trim());
+      }
+    };
+  }
+};
