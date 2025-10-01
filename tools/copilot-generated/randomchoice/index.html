@@ -13,7 +13,8 @@
       <h1 id="main-title">ランダム選択ツール</h1>
       <button id="edit-title-btn" type="button">変更</button>
     </div>
-    <form id="choice-form">
+    <button id="toggle-form-btn" type="button" style="margin-bottom:0.5em;">選択肢入力フォームを開く</button>
+    <form id="choice-form" style="display:none;">
       <input type="text" id="choice-input" placeholder="選択肢を入力" required>
       <button type="submit">追加</button>
     </form>
@@ -30,5 +31,21 @@
     }
   </script>
   <script src="main.js"></script>
+  <script>
+    // 折りたたみトグル
+    document.addEventListener('DOMContentLoaded', function() {
+      var form = document.getElementById('choice-form');
+      var btn = document.getElementById('toggle-form-btn');
+      btn.onclick = function() {
+        if (form.style.display === 'none') {
+          form.style.display = '';
+          btn.textContent = '選択肢入力フォームを閉じる';
+        } else {
+          form.style.display = 'none';
+          btn.textContent = '選択肢入力フォームを開く';
+        }
+      };
+    });
+  </script>
 </body>
 </html>
