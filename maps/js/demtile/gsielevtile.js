@@ -87,7 +87,7 @@
   // olapp.demProvider.GSIElevTile
   if (olapp.demProvider === undefined) olapp.demProvider = {};
   olapp.demProvider.GSIElevTile = function () {
-    this.urlTmpl = 'http://cyberjapandata.gsi.go.jp/xyz/dem/{z}/{x}/{y}.txt';
+    this.urlTmpl = 'https://cyberjapandata.gsi.go.jp/xyz/dem/{z}/{x}/{y}.txt';
     this.extent = [13667807, 2320477, 17230031, 5713298];
   };
 
