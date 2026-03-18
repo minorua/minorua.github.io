@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>気象データ(気温)ビューア</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    #toolbar { margin-bottom: 10px; }
+    #chart { width: 100%; height: 500px; border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+
+<h2>気象データ(気温)ビューア</h2>
+
+<div id="toolbar">
+  <input type="file" id="fileInput" accept=".csv" />
+  <button onclick="clearStorage()">ローカルデータをクリア</button>
+</div>
+
+<div id="chart"></div>
+
+<script>
+const chart = echarts.init(document.getElementById('chart'));
+
+document.getElementById('fileInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (file) handleFile(file);
+});
+
+['dragenter', 'dragover'].forEach(event => {
+  document.addEventListener(event, e => e.preventDefault());
+});
+['dragleave', 'drop'].forEach(event => {
+  document.addEventListener(event, e => e.preventDefault());
+});
+
+document.addEventListener('drop', e => {
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+
+
+function handleFile(file) {
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+    const text = new TextDecoder('shift_jis').decode(e.target.result);
+    localStorage.setItem('jma_csv', text);
+    parseAndDraw(text);
+  };
+
+  reader.readAsArrayBuffer(file);
+}
+
+
+const saved = localStorage.getItem('jma_csv');
+
+if (saved) {
+  parseAndDraw(saved);
+} else {
+  fetch('data.csv')
+    .then(res => {
+      if (!res.ok) throw new Error('no default csv');
+      return res.arrayBuffer();
+    })
+    .then(buf => {
+      const text = new TextDecoder('shift_jis').decode(buf);
+      parseAndDraw(text);
+    })
+    .catch(() => {
+      console.warn('data.csvの読み込みに失敗しました');
+    });
+}
+
+
+function clearStorage() {
+  localStorage.removeItem('jma_csv');
+  alert('ローカルデータを削除しました。再読み込みでdata.csvを読み込みます。');
+}
+
+
+function parseAndDraw(csvText) {
+  const lines = csvText.split('\n');
+
+  const avgData = [];
+  const maxData = [];
+  const minData = [];
+  const avgNormal = [];
+  const maxNormal = [];
+  const minNormal = [];
+
+  for (let i = 6; i < lines.length; i++) {
+    const cols = lines[i].split(',');
+    if (cols.length < 10) continue;
+
+    const date = cols[0];
+
+    const avg = parseFloat(cols[1]);
+    const max = parseFloat(cols[6]);
+    const min = parseFloat(cols[11]);
+
+    const avgN = parseFloat(cols[4]);
+    const maxN = parseFloat(cols[9]);
+    const minN = parseFloat(cols[14]);
+
+    if (!isNaN(avg)) avgData.push([date, avg]);
+    if (!isNaN(max)) maxData.push([date, max]);
+    if (!isNaN(min)) minData.push([date, min]);
+
+    if (!isNaN(avgN)) avgNormal.push([date, avgN]);
+    if (!isNaN(maxN)) maxNormal.push([date, maxN]);
+    if (!isNaN(minN)) minNormal.push([date, minN]);
+  }
+
+  drawChart(avgData, maxData, minData, avgNormal, maxNormal, minNormal);
+}
+
+
+function drawChart(avg, max, min, avgN, maxN, minN) {
+  const option = {
+    legend: {
+      data: ['平均気温','最高気温','最低気温','平年平均','平年最高','平年最低']
+    },
+    tooltip: { trigger: 'axis' },
+    xAxis: { type: 'time' },
+    yAxis: { type: 'value', name: '気温 (°C)' },
+    dataZoom: [
+      { type: 'inside' },
+      { type: 'slider' }
+    ],
+    series: [
+      { name: '平均気温', type: 'line', data: avg, itemStyle: { color: '#2ca02c' }, lineStyle: { color: '#2ca02c' } },
+      { name: '最高気温', type: 'line', data: max, itemStyle: { color: '#ff6600' }, lineStyle: { color: '#ff6600' } },
+      { name: '最低気温', type: 'line', data: min, itemStyle: { color: '#1f77b4' }, lineStyle: { color: '#1f77b4' } },
+      { name: '平年平均', type: 'line', data: avgN, itemStyle: { color: '#98df8a' }, lineStyle: { color: '#98df8a', type: 'dashed' }, showSymbol: false },
+      { name: '平年最高', type: 'line', data: maxN, itemStyle: { color: '#ffcc99' }, lineStyle: { color: '#ffcc99', type: 'dashed' }, showSymbol: false },
+      { name: '平年最低', type: 'line', data: minN, itemStyle: { color: '#aec7e8' }, lineStyle: { color: '#aec7e8', type: 'dashed' }, showSymbol: false }
+    ]
+  };
+
+  chart.setOption(option);
+}
+</script>
+
+</body>
+</html>
